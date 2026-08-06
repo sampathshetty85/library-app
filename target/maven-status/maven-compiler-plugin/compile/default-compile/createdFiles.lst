@@ -1,0 +1,10 @@
+com/library/api/BookController.class
+com/library/model/Magazine.class
+com/library/LibraryApplication.class
+com/library/model/AbstractLibraryItem.class
+com/library/service/BookService.class
+com/library/model/Library.class
+com/library/model/Book.class
+com/library/model/LibraryItem.class
+com/library/repository/BookRepository.class
+com/library/api/BookRequest.class

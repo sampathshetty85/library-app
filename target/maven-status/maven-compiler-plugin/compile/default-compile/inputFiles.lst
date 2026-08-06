@@ -1,0 +1,10 @@
+/Users/I348975/Projects/library-app/src/main/java/com/library/LibraryApplication.java
+/Users/I348975/Projects/library-app/src/main/java/com/library/api/BookController.java
+/Users/I348975/Projects/library-app/src/main/java/com/library/api/BookRequest.java
+/Users/I348975/Projects/library-app/src/main/java/com/library/model/AbstractLibraryItem.java
+/Users/I348975/Projects/library-app/src/main/java/com/library/model/Book.java
+/Users/I348975/Projects/library-app/src/main/java/com/library/model/Library.java
+/Users/I348975/Projects/library-app/src/main/java/com/library/model/LibraryItem.java
+/Users/I348975/Projects/library-app/src/main/java/com/library/model/Magazine.java
+/Users/I348975/Projects/library-app/src/main/java/com/library/repository/BookRepository.java
+/Users/I348975/Projects/library-app/src/main/java/com/library/service/BookService.java
