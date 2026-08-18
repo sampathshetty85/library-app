@@ -114,7 +114,7 @@ library-app/
 | 5 | Volumes — PostgreSQL data persists across restarts | ✅ Done |
 | 6 | Networking — how containers talk to each other | ✅ Done |
 
-### Phase 9 — Kubernetes with Minikube 🔄 In Progress
+### Phase 9 — Kubernetes with Minikube ✅ COMPLETE
 | Step | Concept | Status |
 |------|---------|--------|
 | 1 | What is Kubernetes? Pods, Deployments, Services | ✅ Done |
@@ -123,6 +123,9 @@ library-app/
 | 4 | Deploy frontend — Deployment + Service manifest | ✅ Done |
 | 5 | Deploy PostgreSQL — StatefulSet | ✅ Done |
 | 6 | PersistentVolume + PersistentVolumeClaim | ✅ Done |
+| 7 | ConfigMap + Secret | ✅ Done |
+| 8 | Kustomize overlays | ✅ Done |
+
 ### Phase 10 — Helm or ArgoCD ✅ COMPLETE
 | Step | Concept | Status |
 |------|---------|--------|
@@ -132,7 +135,20 @@ library-app/
 | 4 | Create ArgoCD Application → `k8s/overlays/dev` | ✅ Done |
 | 5 | GitOps proof — `git push` auto-scales backend replicas | ✅ Done |
 
-**Phase 10 complete ✅ → Resume point: Phase 11 — Reference Handbook**
+**Phase 10 complete ✅ → Phase 11 complete ✅ — All phases done!**
+
+### Phase 11 — Reference Handbook ✅ COMPLETE
+| Step | Concept | Status |
+|------|---------|--------|
+| 1 | Java & OOP — encapsulation, abstraction, inheritance, polymorphism | ✅ Done |
+| 2 | Spring Boot — annotations, DI, REST, JPA, Actuator | ✅ Done |
+| 3 | React & JavaScript — JSX, useState, useEffect, fetch(), props | ✅ Done |
+| 4 | Build tooling — pom.xml, Maven lifecycle, package.json, npm scripts | ✅ Done |
+| 5 | Database — JPA, Hibernate, JOINED inheritance, JpaRepository | ✅ Done |
+| 6 | Docker & Kubernetes — images, containers, Deployments, Services, PVC, Secrets | ✅ Done |
+| 7 | Full architecture diagram with every layer explained | ✅ Done |
+
+**File: `reference-handbook.md` at project root**
 
 ### Files created so far
 | File | Purpose |

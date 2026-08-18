@@ -144,18 +144,19 @@ docker run --name library-db \
 
 ---
 
-## Phase 11 — Reference Handbook
+## Phase 11 — Reference Handbook ✅ COMPLETE
 > A ready-reference document covering every technical concept, code pattern, and decision made across all phases. Intended for interview prep and future projects.
+> File: `reference-handbook.md`
 
 | Step | Concept              | Status |
 |------|----------------------|--------|
-| 1    | Java & OOP — encapsulation, abstraction, inheritance, polymorphism with code examples | ⬜ |
-| 2    | Spring Boot — annotations, DI, REST, JPA, Actuator with code snippets | ⬜ |
-| 3    | React & JavaScript — JSX, useState, useEffect, fetch(), controlled inputs, props/callbacks | ⬜ |
-| 4    | Build tooling — pom.xml, Maven lifecycle, package.json, npm scripts, fat JAR vs dist/ | ⬜ |
-| 5    | Database — JPA, Hibernate, JOINED inheritance, JpaRepository, derived queries | ⬜ |
-| 6    | Docker & Kubernetes — images, containers, Deployments, Services, PVC, Secrets | ⬜ |
-| 7    | Full architecture diagram with every layer explained | ⬜ |
+| 1    | Java & OOP — encapsulation, abstraction, inheritance, polymorphism with code examples | ✅ Done |
+| 2    | Spring Boot — annotations, DI, REST, JPA, Actuator with code snippets | ✅ Done |
+| 3    | React & JavaScript — JSX, useState, useEffect, fetch(), controlled inputs, props/callbacks | ✅ Done |
+| 4    | Build tooling — pom.xml, Maven lifecycle, package.json, npm scripts, fat JAR vs dist/ | ✅ Done |
+| 5    | Database — JPA, Hibernate, JOINED inheritance, JpaRepository, derived queries | ✅ Done |
+| 6    | Docker & Kubernetes — images, containers, Deployments, Services, PVC, Secrets | ✅ Done |
+| 7    | Full architecture diagram with every layer explained | ✅ Done |
 
 ---
 
