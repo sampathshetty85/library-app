@@ -3,3 +3,15 @@ kind: Kustomization
 
 bases:
   - ../../base
+
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: backend
+      spec:
+        replicas: 2
+    target:
+      kind: Deployment
+      name: backend
