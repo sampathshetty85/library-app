@@ -924,3 +924,177 @@ The unit test from Step 1 captures the exact `Book` object passed to `repository
 ```
 mvn test → Tests run: 6, Failures: 0, Errors: 0, Skipped: 0 — BUILD SUCCESS
 ```
+
+---
+
+## Phase 7 Complete ✅
+
+All steps done (Step 4 optional React test skipped — covered in Phase 11 if needed).
+
+**Next: Phase 8 — Docker**
+
+---
+
+## 2026-08-11
+
+### Phase 8, Step 1 — What is Docker? ✅
+
+**Concept taught:** Docker solves the "works on my machine" problem by shipping the app and everything it needs together in a standard container.
+
+**Analogies used:**
+- Shipping containers — standard size, fits any ship/truck/crane anywhere; same idea for software
+- Cookie cutter (image) vs cookie (container) — image is the blueprint, container is the live instance
+- Lasagne layers — bottom layers (OS, runtime) rarely change and are cached; only the top layer (your code) rebuilds each time
+
+**Three core concepts:**
+| Concept | What it is |
+|---|---|
+| Image | Read-only blueprint: base OS + runtime + your app |
+| Container | A running instance of an image — isolated process |
+| Layer | Each Dockerfile instruction = one cached layer; unchanged layers are reused on rebuild |
+
+**Target state for end of Phase 8:** `docker compose up` starts backend + frontend + PostgreSQL with one command.
+
+---
+
+### Phase 8, Step 2 — Backend Dockerfile ✅
+
+**Concept taught:** Multi-stage Dockerfile — use a heavy builder image to compile, then copy only the JAR into a lean runner image. The builder stage is discarded; only the runner ships.
+
+**Analogy used:** Workshop vs delivery — the workshop has all the heavy tools; you only deliver the finished chair to the customer, not the whole workshop.
+
+**New concepts introduced:**
+- `FROM ... AS builder` — named stage; stage 2 can reference it with `--from=builder`
+- `WORKDIR` — sets working directory inside the container (creates it if needed)
+- `COPY` — copies files from host into the image layer
+- `RUN` — executes a shell command during build; becomes a cached layer
+- `dependency:go-offline` — downloads all Maven deps into the image layer; cached unless `pom.xml` changes
+- `-DskipTests` — skip tests during image build (tests ran in CI already)
+- `FROM eclipse-temurin:24-jre` — JRE only for the runner (no compiler = ~100 MB smaller)
+- `COPY --from=builder` — pulls a file from a previous stage
+- `EXPOSE` — documents the port; doesn't actually open it
+- `CMD ["java", "-jar", "app.jar"]` — default command when container starts
+- Layer order principle: least-changing layers first so cache is preserved on source-only changes
+
+**Files created:**
+| File | Purpose |
+|------|---------|
+| `Dockerfile` | Two-stage backend build: eclipse-temurin:24-jdk builder + eclipse-temurin:24-jre runner |
+| `.dockerignore` | Excludes `target/`, `frontend/`, `out/` from build context |
+| `mvnw` + `.mvn/wrapper/` | Maven wrapper — Docker build doesn't need Maven pre-installed on the base image |
+
+**Key takeaway:** The final image contains only Java 24 JRE + app.jar. No Maven, no source code, no `.class` files. Multi-stage builds keep production images small and secure.
+
+---
+
+## 2026-08-12
+
+### Phase 8, Step 3 — Frontend Dockerfile ✅
+
+**Concept taught:** Multi-stage Dockerfile for the React frontend. Stage 1 uses Node to run `npm run build` and produce the `dist/` folder. Stage 2 uses Nginx to serve those static files. Same pattern as the backend Dockerfile — heavy builder, lean runner.
+
+**Analogies used:**
+- Workshop vs delivery truck — Node/Vite is the workshop that does the work; Nginx is the delivery truck that only carries the finished output
+- Nginx as a waiter — sits on port 80, hands out files the moment a browser asks for them
+
+**New concepts introduced:**
+- `node:24-alpine` — Node.js 24 on Alpine Linux (~50 MB); `alpine` suffix = ultra-slim Linux variant
+- `npm ci` — "clean install"; reads `package-lock.json` exactly, never writes to it, fails if lock file is out of sync. Right command for automated builds (vs `npm install` which is interactive)
+- `npm run build` — Vite bundles all `.jsx` + React library → `dist/index.html` + hashed JS/CSS files
+- `nginx:alpine` — Nginx web server on Alpine Linux (~25 MB); serves static files over HTTP
+- `/usr/share/nginx/html/` — Nginx's default folder; any files here are served automatically at `http://container-ip/`
+- `daemon off` — keeps Nginx in the foreground so Docker knows the container is alive (containers exit when the foreground process exits)
+- `EXPOSE 80` — documents port 80; informational only, same as backend's `EXPOSE 8080`
+
+**Layer order principle applied:**
+```
+COPY package*.json  →  npm ci        (cached unless dependencies change)
+COPY src/ etc.      →  npm run build (rebuilds only when source changes)
+```
+
+**Files created:**
+| File | Purpose |
+|------|---------|
+| `frontend/Dockerfile` | Two-stage build: node:24-alpine builder + nginx:alpine runner |
+| `frontend/.dockerignore` | Excludes `node_modules/` and `dist/` from build context |
+
+**What crosses the stage boundary vs what doesn't:**
+| Left behind in builder | Copied to runner |
+|---|---|
+| Node.js runtime | `dist/index.html` |
+| npm + node_modules (~200 MB) | `dist/assets/*.js` |
+| All source files (src/, public/) | `dist/assets/*.css` |
+| vite.config.js, package.json | — |
+
+**Key takeaway:** After `npm run build`, Node.js is no longer needed. The final image contains Nginx (25 MB) + 3 static files. Nothing else.
+
+---
+
+**Next: Phase 8, Step 4 — Docker Compose**
+
+---
+
+## 2026-08-12
+
+### Phase 8, Step 4 — Docker Compose ✅
+
+**Concept taught:** Docker Compose reads a single `docker-compose.yml` and starts all services together with one command. Each service is either pulled from Docker Hub (`image:`) or built locally from a Dockerfile (`build:`). Compose creates a shared private network where each service's name is its hostname.
+
+**Analogy used:** Stage manager — one call, all actors show up in the right order, in the right costume. Without Compose you'd call each actor (container) individually.
+
+**New concepts introduced:**
+- `docker-compose.yml` — declares all services, their images or build context, ports, environment variables, and dependencies
+- `services:` — each named block is one container
+- `image: postgres:16` — pulls an existing image from Docker Hub; no Dockerfile needed
+- `build: .` — builds from `Dockerfile` in the given path; `.` = project root, `./frontend` = frontend folder
+- `ports: "8080:8080"` — `host:container` mapping; left side = your laptop, right side = inside the container
+- `environment:` — injects environment variables into the container at startup
+- `depends_on:` — Compose starts services in order; `backend` waits for `postgres` to start (not necessarily ready — just started)
+- `volumes: postgres-data:/var/lib/postgresql/data` — named volume mounts a persistent storage location into the container (deep dive in Step 5)
+- `volumes:` (top-level) — declares named volumes; Docker manages their storage location on the host
+
+**Container networking preview:**
+Inside the shared Compose network, service names are hostnames. The backend reaches PostgreSQL at `postgres:5432`, not `localhost:5432` — because `localhost` inside the backend container means "the backend container itself".
+
+**Three files changed/created:**
+
+| File | Change |
+|------|--------|
+| `docker-compose.yml` | Created — 3 services: postgres (image), backend (build .), frontend (build ./frontend); named volume `postgres-data` |
+| `src/main/resources/application.properties` | DB connection values now read from env vars with local fallbacks: `${DB_URL:jdbc:postgresql://localhost:5432/librarydb}` |
+| `src/main/java/com/library/api/BookController.java` | `@CrossOrigin` now allows both `http://localhost:5173` (Vite dev) and `http://localhost` (Nginx/Compose) |
+
+**Why the `application.properties` change?**
+`${DB_URL:jdbc:postgresql://localhost:5432/librarydb}` means:
+- If the `DB_URL` environment variable is set → use it
+- If not → fall back to `jdbc:postgresql://localhost:5432/librarydb`
+
+Result: `mvn spring-boot:run` still works locally (falls back to localhost). In Compose, the `DB_URL` env var overrides it to `postgres:5432`.
+
+**How to use:**
+```bash
+docker compose up --build    # build images + start all 3 containers
+docker compose up            # start (no rebuild, uses cached images)
+docker compose down          # stop and remove containers
+docker compose down -v       # stop and delete the postgres-data volume too
+```
+
+**Key takeaway:** One file, one command. All three services start in dependency order on a shared network. Environment variables make the backend config portable — same code, different config per environment.
+
+---
+
+**Errors hit and fixed:**
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `apackage com.library` compilation error | Stray `a` at start of `LibraryApplication.java` line 1 | Removed the typo |
+| `Main.java` compilation error in Docker | Phase 1 `Main.java` was never deleted from disk; `mvn spring-boot:run` works locally because Spring ignores it at runtime, but `mvn package` inside Docker compiles every `.java` file strictly | Deleted `src/main/java/com/library/Main.java` |
+
+**Verified running:**
+- `http://localhost` → React app served by Nginx ✅
+- `http://localhost:8080/books` → Spring Boot API ✅
+- PostgreSQL connected via `postgres:5432` (env var override confirmed in logs) ✅
+- Hibernate created all 3 tables on first boot ✅
+
+---
+
+**Next: Phase 8, Step 5 — Volumes**

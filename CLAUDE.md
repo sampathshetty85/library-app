@@ -95,16 +95,38 @@ library-app/
 | 2 | Maven lifecycle — compile → test → package → clean; fat JAR (54 MB) | ✅ Done |
 | 3 | `package.json` — scripts, dependencies vs devDependencies, `^` ranges, package-lock.json, `npm run build` → `dist/` | ✅ Done |
 
-### Phase 7 — Testing 🔄 In Progress
+### Phase 7 — Testing ✅ COMPLETE
 | Step | Concept | Status |
 |------|---------|--------|
 | 1 | Unit tests — JUnit 5 + Mockito; BookServiceTest (4 tests); `spring-boot-starter-test` added to pom.xml | ✅ Done |
 | 1b | JaCoCo coverage report — `mvn test` generates HTML at `target/site/jacoco/` | ✅ Done |
 | 2 | Integration tests — BookController with MockMvc | ✅ Done |
 | 3 | Regression via refactor | ✅ Done |
-| 4 | Basic React component test (optional) | ⬜ |
+| 4 | Basic React component test (optional) | ⬜ skipped |
 
-**Resume point: Phase 8 — Docker (or Phase 7 Step 4 optional React test)**
+### Phase 8 — Docker ✅ COMPLETE
+| Step | Concept | Status |
+|------|---------|--------|
+| 1 | What is Docker? Images, containers, layers | ✅ Done |
+| 2 | Backend Dockerfile — multi-stage build | ✅ Done |
+| 3 | Frontend Dockerfile — React/Nginx image | ✅ Done |
+| 4 | Docker Compose — run everything with one command | ✅ Done |
+| 5 | Volumes — PostgreSQL data persists across restarts | ✅ Done |
+| 6 | Networking — how containers talk to each other | ✅ Done |
+
+### Phase 9 — Kubernetes with Minikube 🔄 In Progress
+| Step | Concept | Status |
+|------|---------|--------|
+| 1 | What is Kubernetes? Pods, Deployments, Services | ✅ Done |
+| 2 | Minikube setup | ✅ Done |
+| 3 | Deploy backend — Deployment + Service manifest | ✅ Done |
+| 4 | Deploy frontend — Deployment + Service manifest | ✅ Done |
+| 5 | Deploy PostgreSQL — StatefulSet | ✅ Done |
+| 6 | PersistentVolume + PersistentVolumeClaim | ✅ Done |
+| 7 | ConfigMap + Secret | ✅ Done |
+| 8 | Kustomize overlays | ✅ Done |
+
+**Phase 9 complete ✅ → Resume point: Phase 10, Step 1 — Helm or ArgoCD**
 
 ### Files created so far
 | File | Purpose |

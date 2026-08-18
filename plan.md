@@ -90,28 +90,28 @@ docker run --name library-db \
 
 ---
 
-## Phase 7 — Testing 🔄 In Progress
+## Phase 7 — Testing ✅ COMPLETE
 | Step | Concept              | Status |
 |------|----------------------|--------|
 | 1    | Unit tests (JUnit + Mockito) — BookServiceTest (4 tests) | ✅ Done |
 | 1b   | JaCoCo test coverage report | ✅ Done |
 | 2    | Integration tests — BookController with MockMvc | ✅ Done |
 | 3    | Regression via refactor | ✅ Done |
-| 4    | Basic React component test (optional) | ⬜ |
+| 4    | Basic React component test (optional) | ⬜ skipped |
 
 ---
 
-## Phase 8 — Docker (Containerisation Tutorial)
+## Phase 8 — Docker (Containerisation Tutorial) ✅ COMPLETE
 > How Docker works, why it exists, and how to package the app properly.
 
 | Step | Concept              | Status |
 |------|----------------------|--------|
-| 1    | What is Docker? Images, containers, layers — with analogies | ⬜ |
-| 2    | Backend Dockerfile — build a Java image | ⬜ |
-| 3    | Frontend Dockerfile — build a React/Nginx image | ⬜ |
-| 4    | Docker Compose — run backend + frontend + PostgreSQL together with one command | ⬜ |
-| 5    | Volumes — how PostgreSQL data persists across container restarts | ⬜ |
-| 6    | Networking — how containers talk to each other | ⬜ |
+| 1    | What is Docker? Images, containers, layers — with analogies | ✅ Done |
+| 2    | Backend Dockerfile — multi-stage build (builder + runner) | ✅ Done |
+| 3    | Frontend Dockerfile — build a React/Nginx image | ✅ Done |
+| 4    | Docker Compose — run backend + frontend + PostgreSQL together with one command | ✅ Done |
+| 5    | Volumes — how PostgreSQL data persists across container restarts | ✅ Done |
+| 6    | Networking — how containers talk to each other | ✅ Done |
 
 ---
 
@@ -120,14 +120,14 @@ docker run --name library-db \
 
 | Step | Concept              | Status |
 |------|----------------------|--------|
-| 1    | What is Kubernetes? Pods, Deployments, Services — with analogies | ⬜ |
-| 2    | Minikube setup — start a local K8s cluster | ⬜ |
-| 3    | Deploy backend — Deployment + Service manifest | ⬜ |
-| 4    | Deploy frontend — Deployment + Service manifest | ⬜ |
-| 5    | Deploy PostgreSQL in K8s — StatefulSet | ⬜ |
-| 6    | Persistence in K8s — PersistentVolume + PersistentVolumeClaim (so DB data survives pod restarts) | ⬜ |
-| 7    | ConfigMap + Secret — pass DB credentials safely | ⬜ |
-| 8    | Kustomize — base manifests, dev overlay, prod overlay | ⬜ |
+| 1    | What is Kubernetes? Pods, Deployments, Services — with analogies | ✅ Done |
+| 2    | Minikube setup — start a local K8s cluster | ✅ Done |
+| 3    | Deploy backend — Deployment + Service manifest | ✅ Done |
+| 4    | Deploy frontend — Deployment + Service manifest | ✅ Done |
+| 5    | Deploy PostgreSQL in K8s — StatefulSet | ✅ Done |
+| 6    | Persistence in K8s — PersistentVolume + PersistentVolumeClaim (so DB data survives pod restarts) | ✅ Done |
+| 7    | ConfigMap + Secret — pass DB credentials safely | ✅ Done |
+| 8    | Kustomize — base manifests, dev overlay, prod overlay | ✅ Done |
 
 ---
 

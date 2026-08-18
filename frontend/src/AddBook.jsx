@@ -7,7 +7,7 @@ function AddBook({ onBookAdded }) {
 
   function handleSubmit(e) {
     e.preventDefault()
-    fetch('http://localhost:8080/books', {
+    fetch('/api/books', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, author, pageCount: parseInt(pageCount) }),
