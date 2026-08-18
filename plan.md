@@ -131,13 +131,16 @@ docker run --name library-db \
 
 ---
 
-## Phase 10 — Helm or ArgoCD
-> To be decided: check if learner has a cluster / GitOps repo available.
+## Phase 10 — Helm or ArgoCD ✅ COMPLETE
+> Decision: ArgoCD chosen — native Kustomize support, GitOps pattern, suits a single-team self-hosted cluster.
 
-| Step | Concept              | Status |
-|------|----------------------|--------|
-| 1    | Choose: Helm chart vs ArgoCD Application | ⬜ |
-| 2    | `values.yaml` or ArgoCD sync setup | ⬜ |
+| Step | Concept | Status |
+|------|---------|--------|
+| 1 | Choose: Helm chart vs ArgoCD Application | ✅ Done (ArgoCD chosen) |
+| 2 | Install ArgoCD in Minikube | ✅ Done |
+| 3 | Connect `github.tools.sap` repo with PAT credential | ✅ Done |
+| 4 | Create ArgoCD Application pointing at `k8s/overlays/dev` | ✅ Done |
+| 5 | GitOps proof — `git push` scales replicas without `kubectl` | ✅ Done |
 
 ---
 

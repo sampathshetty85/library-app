@@ -123,10 +123,16 @@ library-app/
 | 4 | Deploy frontend — Deployment + Service manifest | ✅ Done |
 | 5 | Deploy PostgreSQL — StatefulSet | ✅ Done |
 | 6 | PersistentVolume + PersistentVolumeClaim | ✅ Done |
-| 7 | ConfigMap + Secret | ✅ Done |
-| 8 | Kustomize overlays | ✅ Done |
+### Phase 10 — Helm or ArgoCD ✅ COMPLETE
+| Step | Concept | Status |
+|------|---------|--------|
+| 1 | Helm vs ArgoCD tradeoff — chose ArgoCD | ✅ Done |
+| 2 | Install ArgoCD in Minikube (`argocd` namespace) | ✅ Done |
+| 3 | Connect `github.tools.sap` repo with PAT credential | ✅ Done |
+| 4 | Create ArgoCD Application → `k8s/overlays/dev` | ✅ Done |
+| 5 | GitOps proof — `git push` auto-scales backend replicas | ✅ Done |
 
-**Phase 9 complete ✅ → Resume point: Phase 10, Step 1 — Helm or ArgoCD**
+**Phase 10 complete ✅ → Resume point: Phase 11 — Reference Handbook**
 
 ### Files created so far
 | File | Purpose |

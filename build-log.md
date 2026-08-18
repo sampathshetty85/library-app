@@ -1098,3 +1098,270 @@ docker compose down -v       # stop and delete the postgres-data volume too
 ---
 
 **Next: Phase 8, Step 5 — Volumes**
+
+---
+
+## 2026-08-18
+
+### Phase 8, Step 5 — Volumes ✅
+
+**Concept taught:** Named volumes give containers a place to store data that survives container restarts. Without a volume, PostgreSQL writes to the container's writable layer — deleted when the container is removed.
+
+**Analogy used:** Hotel safe — your valuables (DB data) stay in the safe (volume) even when the room (container) is cleaned out between guests.
+
+**Key concepts:**
+- Named volume (`postgres-data`) — Docker manages the location on the host; you reference it by name
+- `docker compose down` — removes containers, leaves volumes intact
+- `docker compose down -v` — removes containers AND volumes (data gone)
+- `volumes:` in service = where to mount in the container
+- `volumes:` at top level = declares the named volume
+
+**Verified:** Added books → `docker compose down` → `docker compose up` → books still there ✅
+
+---
+
+### Phase 8, Step 6 — Networking ✅
+
+**Concept taught:** Docker Compose creates a shared bridge network for all services. Each service is reachable by its service name (DNS). The backend uses `postgres:5432`, not `localhost:5432` — `localhost` inside a container means that container itself.
+
+**Key concepts:**
+- Default Compose network — created automatically; all services join it
+- Service-name DNS — `backend` can reach `postgres` by hostname `postgres`
+- `application.properties` uses `${DB_URL:...}` — env var override (`postgres:5432` in Compose, fallback to `localhost` locally)
+- Port mapping `host:container` — left side exposes to your laptop, right side is the container port
+
+**Verified in `docker-compose.yml`:**
+- `DB_URL: jdbc:postgresql://postgres:5432/librarydb` — service name `postgres` used as hostname ✅
+- `depends_on: postgres` — startup ordering ✅
+- All three port mappings present ✅
+
+---
+
+## Phase 8 Complete ✅
+
+All 6 steps done. The app is fully containerised:
+- Multi-stage backend Dockerfile (JDK builder → JRE runner) ✅
+- Multi-stage frontend Dockerfile (Node builder → Nginx runner) ✅
+- Docker Compose — one command starts everything ✅
+- Volumes — PostgreSQL data persists across restarts ✅
+- Networking — containers talk by service name ✅
+
+---
+
+## Phase 9 — Kubernetes with Minikube
+
+### Phase 9, Step 1 — What is Kubernetes? ✅
+
+**Concept taught:** Kubernetes manages containers across many machines. Minikube runs a single-node K8s cluster locally.
+
+**Analogies used:**
+- Hotel manager — K8s sets rules ("keep 3 guests in VIP wing"), the system enforces them automatically
+- Pod = room, Deployment = booking policy, Service = front desk phone number
+
+**Three core building blocks:**
+| Resource | Purpose |
+|---|---|
+| Pod | One running instance of a container (smallest unit) |
+| Deployment | Manages how many pods run; restarts crashed ones |
+| Service | Stable address (DNS name) pointing at a set of pods |
+
+---
+
+### Phase 9, Step 2 — Minikube Setup ✅
+
+**Tools already installed:** minikube v1.36.0, kubectl v1.33.4, Kustomize v5.6.0
+
+**Commands:**
+```bash
+minikube start --driver=docker
+kubectl get nodes          # minikube   Ready   control-plane
+kubectl get pods -A        # kube-system pods all Running
+```
+
+**Key point:** Minikube uses Docker as its driver (runs the K8s node inside a Docker container). Docker Desktop must be running first.
+
+---
+
+### Phase 9, Step 3 — Deploy Backend ✅
+
+**New concept:** Manifest files — YAML files describing K8s resources; applied with `kubectl apply -f`.
+
+**Key detail:** Minikube has its own Docker daemon. Images must be built inside it:
+```bash
+minikube image build -t library-backend:latest .
+```
+`imagePullPolicy: Never` tells K8s to use the locally loaded image, not pull from Docker Hub.
+
+**Files created:**
+| File | Purpose |
+|---|---|
+| `k8s/base/backend-deployment.yaml` | Deployment: 1 replica, `library-backend:latest`, env vars |
+| `k8s/base/backend-service.yaml` | ClusterIP Service: stable internal address at port 8080 |
+
+**CrashLoopBackOff teaching moment:** Backend crashed immediately (no postgres yet). K8s kept restarting it with exponential backoff. This is expected K8s behaviour — no `depends_on`, pods start independently, retry until dependency is ready.
+
+**CORS bug found:** `@CrossOrigin` allowed `localhost:5173` and `localhost` but not `127.0.0.1:52212` (minikube tunnel URL). Browser POSTs returned 403 — confirmed via Nginx access logs showing `POST /api/books 403`. Fixed by changing to `@CrossOrigin("*")`.
+
+---
+
+### Phase 9, Step 4 — Deploy Frontend ✅
+
+**New concept:** Nginx reverse proxy — frontend pod proxies `/api/` requests to `backend:8080` internally. Browser calls same origin; Nginx forwards server-side.
+
+**Why needed:** React called `http://localhost:8080/books` (hardcoded). In K8s, browser can't reach `backend:8080` — that's a cluster-internal address. Fix: use relative `/api/books` in React + Nginx proxy.
+
+**Changes made:**
+| File | Change |
+|---|---|
+| `frontend/nginx.conf` | Created — `location /api/ { proxy_pass http://backend:8080/; }` |
+| `frontend/Dockerfile` | Added `COPY nginx.conf /etc/nginx/conf.d/default.conf` |
+| `frontend/src/BookList.jsx` | `http://localhost:8080/books` → `/api/books` |
+| `frontend/src/AddBook.jsx` | `http://localhost:8080/books` → `/api/books` |
+| `k8s/base/frontend-deployment.yaml` | Created |
+| `k8s/base/frontend-service.yaml` | Created — **NodePort** on 30080 (browser-accessible) |
+
+**ClusterIP vs NodePort:**
+- ClusterIP — internal only (backend, postgres)
+- NodePort — opens port on the node itself, reachable from outside (frontend)
+
+---
+
+### Phase 9, Step 5 — Deploy PostgreSQL (StatefulSet) ✅
+
+**New concept:** StatefulSet vs Deployment — databases need stable pod names and sticky storage. StatefulSet names pods `postgres-0`, `postgres-1` (not random hashes).
+
+**Why StatefulSet for databases:**
+| | Deployment | StatefulSet |
+|---|---|---|
+| Pod names | `backend-abc123` | `postgres-0` |
+| Storage per pod | Shared or none | Own PVC per pod |
+| Use for | Stateless apps | Databases |
+
+**Headless Service** (`clusterIP: None`) required — gives StatefulSet pods stable DNS names inside the cluster.
+
+**Files created:** `k8s/base/postgres-statefulset.yaml` — headless Service + StatefulSet with `volumeClaimTemplates`.
+
+---
+
+### Phase 9, Step 6 — PersistentVolume + PVC ✅
+
+**Concept taught:** PVC (PersistentVolumeClaim) = a request for storage. PV (PersistentVolume) = the actual storage. Minikube's `storage-provisioner` dynamically creates a PV for each PVC.
+
+**Key insight:** `volumeClaimTemplates` in a StatefulSet automatically creates one PVC per pod — no manual PV/PVC YAML needed.
+
+**Naming convention:** PVC name = `{template-name}-{statefulset-name}-{pod-index}` → `postgres-data-postgres-0`
+
+**Verified:** `kubectl get pvc` showed `postgres-data-postgres-0` as `Bound` with 1Gi ✅
+
+---
+
+### Phase 9, Step 7 — ConfigMap + Secret ✅
+
+**Concept taught:** Credentials should not be hardcoded in YAML. ConfigMap stores non-sensitive config; Secret stores sensitive data (base64-encoded, not encrypted by default in Minikube).
+
+**Files created:**
+| File | Content |
+|---|---|
+| `k8s/base/configmap.yaml` | `DB_URL`, `DB_USER`, `DB_NAME` |
+| `k8s/base/secret.yaml` | `DB_PASSWORD: c2VjcmV0` (base64 of "secret") |
+
+**Updated:** `backend-deployment.yaml` and `postgres-statefulset.yaml` use `valueFrom: configMapKeyRef` and `secretKeyRef` instead of hardcoded values.
+
+**Note:** base64 is encoding, not encryption. In production use Vault, Sealed Secrets, or K8s encryption at rest.
+
+---
+
+### Phase 9, Step 8 — Kustomize ✅
+
+**Concept taught:** Kustomize lets you write manifests once in `base/` and write small overlays that describe only what differs per environment.
+
+**Analogy used:** A recipe (base) + small modifications (overlays). Never rewrite the whole recipe — just note the changes.
+
+**Files created:**
+| File | Purpose |
+|---|---|
+| `k8s/base/kustomization.yaml` | Lists all base resources |
+| `k8s/overlays/dev/kustomization.yaml` | Points at base (no changes) |
+| `k8s/overlays/prod/kustomization.yaml` | Patches backend to 3 replicas, frontend to 2 replicas |
+
+**Verified:**
+```bash
+kubectl kustomize k8s/overlays/dev   # backend replicas: 1
+kubectl kustomize k8s/overlays/prod  # backend replicas: 3
+```
+
+**Deploy command:**
+```bash
+kubectl apply -k k8s/overlays/dev    # -k flag = run Kustomize before applying
+```
+
+---
+
+## Phase 9 Complete ✅
+
+Full app running in Kubernetes:
+- Backend Deployment + ClusterIP Service ✅
+- Frontend Deployment + NodePort Service + Nginx reverse proxy ✅
+- PostgreSQL StatefulSet (`postgres-0`) + PVC (1Gi, survives restarts) ✅
+- ConfigMap + Secret (no credentials in YAML) ✅
+- Kustomize base + dev/prod overlays ✅
+
+---
+
+## Phase 10 — ArgoCD (GitOps)
+
+### Phase 10, Steps 1-5 ✅
+
+**Concept taught:** GitOps — the cluster's desired state IS the git repo. ArgoCD runs inside the cluster, watches git, and applies changes automatically on every push. You never run `kubectl apply` to deploy.
+
+**Helm vs ArgoCD tradeoff:**
+| | Helm | ArgoCD |
+|---|---|---|
+| How you deploy | `helm upgrade` | `git push` |
+| Auto-sync with git | No | Yes |
+| Good for | Packaging/distributing | Team GitOps workflow |
+
+**ArgoCD chosen** — native Kustomize support, suits single-team self-hosted cluster.
+
+**Installation:**
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
+**Initial admin password:**
+```bash
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
+```
+
+**Access UI:**
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8443:443
+# open https://localhost:8443
+```
+
+**ArgoCD Application config:**
+- Repository: `https://github.tools.sap/I348975/library-app` (connected with PAT)
+- Revision: `master`
+- Path: `k8s/overlays/dev`
+- Destination: `https://kubernetes.default.svc`, namespace `default`
+- Sync policy: Automatic + Self Heal
+
+**GitOps proof:**
+1. Added `replicas: 2` patch to `k8s/overlays/dev/kustomization.yaml`
+2. `git push sap master`
+3. ArgoCD detected the change and scaled backend to 2 pods — no `kubectl` command run
+
+**Also done:**
+- Pushed repo to personal GitHub: [github.com/sampathshetty85/library-app](https://github.com/sampathshetty85/library-app)
+- Removed `target/` from git tracking (`git rm -r --cached target/`)
+- Updated README with full architecture, all three quick-start options, K8s concepts table
+- Set GitHub About: description + 10 topics
+
+---
+
+## Phase 10 Complete ✅
+
+The app is now deployed via GitOps — every `git push` to `master` triggers an automatic cluster sync via ArgoCD.
+
+**Next: Phase 11 — Reference Handbook**
